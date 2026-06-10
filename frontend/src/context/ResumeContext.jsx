@@ -6,6 +6,7 @@ import {
   fetchSuggestionsApi,
   rewriteBulletApi,
 } from '../services/aiService';
+import { seedData } from '../data/seedData';
 
 const ResumeContext = createContext();
 
@@ -206,7 +207,7 @@ export const ResumeProvider = ({ children }) => {
     setSaveSuccess(false);
 
     try {
-      const payload = mapResumeToBackend(resumeData);
+      const payload = mapResumeToBackend(resumeData, resumeId, jdText, atsScore);
       let response;
 
       if (resumeId) {
@@ -232,6 +233,14 @@ export const ResumeProvider = ({ children }) => {
         );
         setResumeData(savedResume);
         setResumeId(savedId);
+        
+        if (response.data.data.jobDescription !== undefined) {
+          setJdText(response.data.data.jobDescription || '');
+        }
+        if (response.data.data.atsScore !== undefined) {
+          setAtsScore(response.data.data.atsScore || 0);
+        }
+        
         setSaveSuccess(true);
         setTimeout(() => setSaveSuccess(false), 3000);
       } else {
@@ -258,6 +267,13 @@ export const ResumeProvider = ({ children }) => {
         );
         setResumeData(loadedResume);
         setResumeId(loadedId);
+        
+        if (response.data.data.jobDescription !== undefined) {
+          setJdText(response.data.data.jobDescription || '');
+        }
+        if (response.data.data.atsScore !== undefined) {
+          setAtsScore(response.data.data.atsScore || 0);
+        }
       } else {
         setError(response.data?.message || 'Failed to load resume.');
       }
@@ -277,82 +293,9 @@ export const ResumeProvider = ({ children }) => {
     setSaveSuccess(false);
   };
 
-  // Pre-load with sample premium tech resume data (helps visual aesthetics right away!)
+  // Pre-load with student profile data
   const loadSampleData = () => {
-    setResumeData({
-      personalInfo: {
-        fullName: 'Alexander Wright',
-        title: 'Senior Full Stack Architect',
-        email: 'alexander.wright@careerforge.io',
-        phone: '+1 (555) 342-9081',
-        website: 'https://alexwright.dev',
-        linkedin: 'linkedin.com/in/alexanderwright',
-        github: 'github.com/alexwright-dev',
-        location: 'San Francisco, CA',
-        summary: 'Driven Full Stack Engineer with 7+ years of experience engineering high-throughput microservices and responsive web client interfaces. Expert in React.js ecosystem, Node.js, Express, MongoDB Atlas, and cloud architectures. Proven record of optimizing web rendering performance by 40% and designing clean APIs with strict compliance models.'
-      },
-      education: [
-        {
-          school: 'University of California, Berkeley',
-          degree: 'Master of Science',
-          fieldOfStudy: 'Computer Science & Engineering',
-          startDate: '2016-09',
-          endDate: '2018-05',
-          current: false,
-          description: 'Specialization in Distributed Systems. Graduated with Honors (GPA: 3.92/4.00). Co-authored research on edge-networking clusters.'
-        },
-        {
-          school: 'Boston University',
-          degree: 'Bachelor of Science',
-          fieldOfStudy: 'Computer Engineering',
-          startDate: '2012-09',
-          endDate: '2016-05',
-          current: false,
-          description: 'Graduated Summa Cum Laude. President of the Association for Computing Machinery (ACM) Student Chapter.'
-        }
-      ],
-      experience: [
-        {
-          company: 'Vertex Scale Tech',
-          position: 'Lead Full Stack Developer',
-          location: 'San Francisco, CA',
-          startDate: '2021-08',
-          endDate: 'Present',
-          current: true,
-          description: 'Spearheaded migration of legacy server infrastructure to Express and Node.js clusters, enhancing request processing efficiency by 35%.\nArchitected unified dashboard client in React.js utilizing Tailwind CSS and Context API, boosting user-retaining interaction time by 50%.\nCreated and maintained MongoDB Atlas data models handling over 1.2M transactions daily with complex index tuning.'
-        },
-        {
-          company: 'InnoFlow Systems',
-          position: 'Software Engineer II',
-          location: 'Boston, MA',
-          startDate: '2018-06',
-          endDate: '2021-07',
-          current: false,
-          description: 'Authored 40+ modular RESTful API endpoints utilizing Express.js, integrating third-party payment gateways and secure OAuth authentications.\nOptimized React browser components to slash average time-to-interactive from 3.2s to 1.4s, leveraging lazy loading and CSS optimizations.'
-        }
-      ],
-      projects: [
-        {
-          name: 'Apex Analytics Engine',
-          description: 'High fidelity dashboard analyzing cluster telemetry and logs in real-time, built with web sockets, React.js, and charts visualizers.',
-          technologies: ['React.js', 'Tailwind CSS', 'Node.js', 'Express', 'WebSockets', 'MongoDB'],
-          githubLink: 'github.com/alexwright-dev/apex-telemetry',
-          liveLink: 'apex-telemetry.dev'
-        },
-        {
-          name: 'Atlas Cloud Vault',
-          description: 'Polished client-facing file security vault employing end-to-end symmetric encryption keys on web workers.',
-          technologies: ['React', 'Context API', 'WebCrypto API', 'Express', 'Mongoose'],
-          githubLink: 'github.com/alexwright-dev/atlas-vault',
-          liveLink: 'atlasvault.net'
-        }
-      ],
-      skills: [
-        'React.js', 'Node.js', 'Express.js', 'MongoDB Atlas', 'Tailwind CSS', 
-        'JavaScript (ES6+)', 'RESTful APIs', 'TypeScript', 'Context API', 
-        'Next.js', 'Mongoose ODM', 'Git & CI/CD', 'AWS S3', 'Docker'
-      ]
-    });
+    setResumeData(seedData);
   };
 
   /** Week 2: JD Analysis Agent + ATS score */

@@ -8,7 +8,7 @@ const splitFullName = (fullName = '') => {
   };
 };
 
-export const mapResumeToBackend = (resumeData, resumeId = null) => {
+export const mapResumeToBackend = (resumeData, resumeId = null, jdText = '', atsScore = 0) => {
   const { personalInfo, education, experience, projects, skills } = resumeData;
   const { firstName, lastName } = splitFullName(personalInfo?.fullName || '');
 
@@ -24,7 +24,8 @@ export const mapResumeToBackend = (resumeData, resumeId = null) => {
     phone: personalInfo?.phone || '',
     address: personalInfo?.location || '',
     summary: personalInfo?.summary || '',
-    jobDescription: '',
+    jobDescription: jdText || '',
+    atsScore: Number(atsScore) || 0,
     experience: (experience || []).map((exp) => ({
       title: exp.position || '',
       companyName: exp.company || '',
