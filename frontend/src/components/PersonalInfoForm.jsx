@@ -36,7 +36,7 @@ const PersonalInfoForm = () => {
               name="fullName"
               value={fullName}
               onChange={handleChange}
-              placeholder="e.g. Alexander Wright"
+              placeholder="e.g. Divye Kartike"
               className="glass-input w-full pl-10 pr-4 py-2.5 rounded-xl text-sm"
               required
             />
@@ -53,7 +53,7 @@ const PersonalInfoForm = () => {
               name="title"
               value={title}
               onChange={handleChange}
-              placeholder="e.g. Senior Full Stack Architect"
+              placeholder="e.g. Full Stack "
               className="glass-input w-full pl-10 pr-4 py-2.5 rounded-xl text-sm"
             />
           </div>
@@ -71,7 +71,7 @@ const PersonalInfoForm = () => {
               name="email"
               value={email}
               onChange={handleChange}
-              placeholder="e.g. alexander@example.com"
+              placeholder="e.g. kartikedivye@example.com"
               className="glass-input w-full pl-10 pr-4 py-2.5 rounded-xl text-sm"
               required
             />
@@ -88,7 +88,7 @@ const PersonalInfoForm = () => {
               name="phone"
               value={phone}
               onChange={handleChange}
-              placeholder="e.g. +1 (555) 019-2834"
+              placeholder="e.g. +91 (555) 019-2834"
               className="glass-input w-full pl-10 pr-4 py-2.5 rounded-xl text-sm"
             />
           </div>
@@ -104,7 +104,7 @@ const PersonalInfoForm = () => {
               name="location"
               value={location}
               onChange={handleChange}
-              placeholder="e.g. San Francisco, CA"
+              placeholder="e.g. Noida, India"
               className="glass-input w-full pl-10 pr-4 py-2.5 rounded-xl text-sm"
             />
           </div>
@@ -120,7 +120,7 @@ const PersonalInfoForm = () => {
               name="website"
               value={website}
               onChange={handleChange}
-              placeholder="e.g. https://alexwright.dev"
+              placeholder="e.g. https://kartikedivye.dev"
               className="glass-input w-full pl-10 pr-4 py-2.5 rounded-xl text-sm"
             />
           </div>
@@ -140,7 +140,7 @@ const PersonalInfoForm = () => {
               name="linkedin"
               value={linkedin}
               onChange={handleChange}
-              placeholder="e.g. linkedin.com/in/alexander"
+              placeholder="e.g. linkedin.com/in/divye"
               className="glass-input w-full pl-10 pr-4 py-2.5 rounded-xl text-sm"
             />
           </div>
@@ -158,7 +158,7 @@ const PersonalInfoForm = () => {
               name="github"
               value={github}
               onChange={handleChange}
-              placeholder="e.g. github.com/alexwright-dev"
+              placeholder="e.g. github.com/divyekartike-dev"
               className="glass-input w-full pl-10 pr-4 py-2.5 rounded-xl text-sm"
             />
           </div>
