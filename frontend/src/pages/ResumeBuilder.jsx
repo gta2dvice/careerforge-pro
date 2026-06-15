@@ -12,7 +12,7 @@ import AIOptimizer from '../components/AIOptimizer';
 // Beautiful Lucide Icons for dashboard actions
 import { 
   Sparkles, Save, RotateCcw, Printer, LayoutTemplate, 
-  CheckCircle2, AlertTriangle, RefreshCw 
+  CheckCircle2, AlertTriangle, RefreshCw, Download, Eye, EyeOff
 } from 'lucide-react';
 
 const ResumeBuilder = () => {
@@ -39,8 +39,20 @@ const ResumeBuilder = () => {
     { id: 'ai', label: '6. AI Optimizer ✨' },
   ];
 
+  const [isPreviewMode, setIsPreviewMode] = useState(false);
+
   const handlePrint = () => {
     window.print();
+  };
+
+  const handleDownloadPDF = () => {
+    if (!resumeId) {
+      alert("Please save your resume first to generate and download the PDF.");
+      return;
+    }
+    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+    const downloadUrl = `${apiBaseUrl}/api/resumes/download/${resumeId}`;
+    window.open(downloadUrl, '_blank');
   };
 
   return (
@@ -133,15 +145,41 @@ const ResumeBuilder = () => {
             {isSaving ? 'Saving...' : saveSuccess ? 'Saved!' : 'Save Resume'}
           </button>
 
+          {/* Print Preview */}
+          <button
+            type="button"
+            onClick={() => setIsPreviewMode(!isPreviewMode)}
+            className={`flex items-center gap-1.5 px-4 py-2 border rounded-lg text-xs font-bold transition-all duration-200 shadow-sm active:scale-[0.98] ${
+              isPreviewMode 
+                ? 'bg-indigo-50 border-indigo-200 text-indigo-700 hover:bg-indigo-100' 
+                : 'bg-white border-neutral-200 text-neutral-700 hover:bg-neutral-50'
+            }`}
+            title="Toggle Fullscreen Print Preview Mode"
+          >
+            {isPreviewMode ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+            {isPreviewMode ? 'Exit Preview' : 'Print Preview'}
+          </button>
+
           {/* Print PDF */}
           <button
             type="button"
             onClick={handlePrint}
             className="flex items-center gap-1.5 px-4 py-2 bg-white hover:bg-neutral-50 text-neutral-900 border border-neutral-200 rounded-lg text-xs font-bold transition-all duration-200 shadow-sm active:scale-[0.98]"
-            title="Download or Print standard PDF resume"
+            title="Print standard PDF resume"
           >
             <Printer className="w-3.5 h-3.5" />
-            Print PDF
+            Print
+          </button>
+
+          {/* Download PDF */}
+          <button
+            type="button"
+            onClick={handleDownloadPDF}
+            className="flex items-center gap-1.5 px-4 py-2 bg-neutral-900 hover:bg-neutral-800 text-white rounded-lg text-xs font-bold transition-all duration-200 shadow-sm active:scale-[0.98]"
+            title="Generate and Download PDF file"
+          >
+            <Download className="w-3.5 h-3.5" />
+            Download PDF
           </button>
         </div>
       </header>
@@ -170,50 +208,89 @@ const ResumeBuilder = () => {
       <main className="flex-1 flex flex-col lg:flex-row overflow-hidden">
         
         {/* Left Side: Modular input Form */}
-        <section className="w-full lg:w-[48%] flex flex-col border-r border-neutral-200 bg-white print:hidden">
-          {/* Tab Selection Row */}
-          <div className="flex border-b border-neutral-200 bg-neutral-50 p-2 overflow-x-auto gap-1">
-            {tabItems.map((item) => (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => setActiveTab(item.id)}
-                className={`px-4 py-2 rounded-lg text-xs font-bold whitespace-nowrap transition-all duration-200 ${
-                  activeTab === item.id
-                    ? 'bg-white text-neutral-900 border border-neutral-200 shadow-sm'
-                    : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-200/30'
-                }`}
-              >
-                {item.label}
-              </button>
-            ))}
-          </div>
-
-          {/* Form Scroll Container */}
-          <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-neutral-50/50">
-            <div className="transition-all duration-300">
-              {activeTab === 'personal' && <PersonalInfoForm />}
-              {activeTab === 'work' && <ExperienceForm />}
-              {activeTab === 'projects' && <ProjectsForm />}
-              {activeTab === 'education' && <EducationForm />}
-              {activeTab === 'skills' && <SkillsForm />}
-              {activeTab === 'ai' && <AIOptimizer />}
+        {!isPreviewMode && (
+          <section className="w-full lg:w-[48%] flex flex-col border-r border-neutral-200 bg-white print:hidden">
+            {/* Tab Selection Row */}
+            <div className="flex border-b border-neutral-200 bg-neutral-50 p-2 overflow-x-auto gap-1">
+              {tabItems.map((item) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => setActiveTab(item.id)}
+                  className={`px-4 py-2 rounded-lg text-xs font-bold whitespace-nowrap transition-all duration-200 ${
+                    activeTab === item.id
+                      ? 'bg-white text-neutral-900 border border-neutral-200 shadow-sm'
+                      : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-200/30'
+                  }`}
+                >
+                  {item.label}
+                </button>
+              ))}
             </div>
-            
-            {/* Seed callout guide */}
-            <div className="p-4 bg-white border border-neutral-200 rounded-2xl flex gap-3 text-neutral-600 text-xs leading-relaxed shadow-sm">
-              <Sparkles className="w-5 h-5 text-neutral-800 shrink-0 mt-0.5" />
-              <div>
-                <p className="font-semibold text-neutral-900 mb-0.5">Want to see the output instantly?</p>
-                <p>Click <strong className="text-neutral-800 cursor-pointer hover:underline font-bold" onClick={loadSampleData}>Seed Sample Data</strong> at the top right to populate the form instantly with a professional senior developer profile!</p>
+
+            {/* Form Scroll Container */}
+            <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-neutral-50/50">
+              <div className="transition-all duration-300">
+                {activeTab === 'personal' && <PersonalInfoForm />}
+                {activeTab === 'work' && <ExperienceForm />}
+                {activeTab === 'projects' && <ProjectsForm />}
+                {activeTab === 'education' && <EducationForm />}
+                {activeTab === 'skills' && <SkillsForm />}
+                {activeTab === 'ai' && <AIOptimizer />}
+              </div>
+              
+              {/* Seed callout guide */}
+              <div className="p-4 bg-white border border-neutral-200 rounded-2xl flex gap-3 text-neutral-600 text-xs leading-relaxed shadow-sm">
+                <Sparkles className="w-5 h-5 text-neutral-800 shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-semibold text-neutral-900 mb-0.5">Want to see the output instantly?</p>
+                  <p>Click <strong className="text-neutral-800 cursor-pointer hover:underline font-bold" onClick={loadSampleData}>Seed Sample Data</strong> at the top right to populate the form instantly with a professional senior developer profile!</p>
+                </div>
               </div>
             </div>
-          </div>
-        </section>
+          </section>
+        )}
 
         {/* Right Side: High-fidelity print-preview sheet */}
-        <section className="flex-1 bg-neutral-100 overflow-y-auto p-8 flex justify-center items-start print:p-0 print:bg-white">
-          <div className="scale-[0.8] md:scale-[0.9] xl:scale-[0.95] 2xl:scale-100 origin-top transition-transform duration-200">
+        <section className={`flex-1 bg-neutral-100 overflow-y-auto p-8 flex flex-col justify-start items-center print:p-0 print:bg-white ${isPreviewMode ? 'w-full' : ''}`}>
+          {isPreviewMode && (
+            <div className="w-full max-w-[800px] flex items-center justify-between mb-6 bg-white p-4 rounded-xl border border-neutral-200 shadow-sm print:hidden">
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 bg-indigo-600 rounded-full animate-pulse" />
+                <span className="text-xs font-bold uppercase tracking-wider text-neutral-500">Print Preview Mode</span>
+              </div>
+              <div className="flex items-center gap-2">
+                {/* Download PDF */}
+                <button
+                  type="button"
+                  onClick={handleDownloadPDF}
+                  className="flex items-center gap-1.5 px-3.5 py-1.5 bg-neutral-900 hover:bg-neutral-800 text-white rounded-lg text-xs font-bold transition-all duration-200 shadow-sm"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  Download PDF
+                </button>
+                {/* Print */}
+                <button
+                  type="button"
+                  onClick={handlePrint}
+                  className="flex items-center gap-1.5 px-3.5 py-1.5 bg-white hover:bg-neutral-50 text-neutral-900 border border-neutral-200 rounded-lg text-xs font-bold transition-all duration-200 shadow-sm"
+                >
+                  <Printer className="w-3.5 h-3.5" />
+                  Print
+                </button>
+                {/* Close */}
+                <button
+                  type="button"
+                  onClick={() => setIsPreviewMode(false)}
+                  className="flex items-center gap-1.5 px-3.5 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-lg text-xs font-bold transition-all duration-200 shadow-sm"
+                >
+                  <EyeOff className="w-3.5 h-3.5" />
+                  Exit Preview
+                </button>
+              </div>
+            </div>
+          )}
+          <div className={`${isPreviewMode ? 'scale-100' : 'scale-[0.8] md:scale-[0.9] xl:scale-[0.95] 2xl:scale-100'} origin-top transition-transform duration-200`}>
             <ResumePreview />
           </div>
         </section>

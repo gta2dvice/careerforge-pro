@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { ResumeProvider } from './context/ResumeContext';
 import LandingPage from './pages/LandingPage';
 import ResumeBuilder from './pages/ResumeBuilder';
+import PrintableResume from './components/PrintableResume';
 
 const AnimatedRoutes = () => {
   const location = useLocation();
@@ -35,6 +36,14 @@ const AnimatedRoutes = () => {
               >
                 <ResumeBuilder />
               </motion.div>
+            </ResumeProvider>
+          }
+        />
+        <Route
+          path="/dashboard/view-resume/:resume_id"
+          element={
+            <ResumeProvider>
+              <PrintableResume />
             </ResumeProvider>
           }
         />

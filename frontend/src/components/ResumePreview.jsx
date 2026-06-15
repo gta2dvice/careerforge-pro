@@ -68,7 +68,7 @@ const ResumePreview = () => {
   const style = getTemplateStyles();
 
   return (
-    <div className="resume-paper shadow-2xl mx-auto rounded-md overflow-hidden relative">
+    <div id="resume-preview" className="resume-paper shadow-2xl mx-auto rounded-md overflow-hidden relative">
       {/* Accent color top bar for modern template */}
       {template === 'modern' && (
         <div className="absolute top-0 left-0 w-full h-1.5 bg-indigo-600" />

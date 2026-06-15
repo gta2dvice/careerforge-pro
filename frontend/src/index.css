@@ -118,13 +118,45 @@ body:has(.landing-page) {
 }
 
 @media print {
+  /* Hide non-printable UI elements */
+  header,
+  button,
+  .print-hidden,
+  .print\:hidden {
+    display: none !important;
+  }
+
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
   .resume-paper {
     box-shadow: none !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    width: 100% !important;
-    min-height: 100% !important;
+    border: none !important;
+    padding: 20mm !important;
+    margin: 0 auto !important;
+    width: 210mm !important;
+    min-height: 297mm !important;
+    background: #ffffff !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
+
+  /* Avoid awkward page breaks inside components */
+  .resume-paper h2,
+  .resume-paper .group,
+  .resume-paper > div {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+}
+
+@page {
+  size: A4;
+  margin: 0;
 }
 
 /* Landing Page theme mapping for the Resume Builder (light mode overrides) */

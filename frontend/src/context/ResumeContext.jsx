@@ -207,7 +207,8 @@ export const ResumeProvider = ({ children }) => {
     setSaveSuccess(false);
 
     try {
-      const payload = mapResumeToBackend(resumeData, resumeId, jdText, atsScore);
+      const payload = mapResumeToBackend(resumeData, resumeId, jdText, atsScore, template);
+      console.log('saveResume payload:', { resumeId, jdText, atsScore, payload });
       let response;
 
       if (resumeId) {
@@ -228,11 +229,14 @@ export const ResumeProvider = ({ children }) => {
       }
 
       if (response.data?.success) {
-        const { resumeData: savedResume, resumeId: savedId } = mapResumeFromBackend(
+        const { resumeData: savedResume, resumeId: savedId, template: savedTemplate } = mapResumeFromBackend(
           response.data.data
         );
         setResumeData(savedResume);
         setResumeId(savedId);
+        if (savedTemplate) {
+          setTemplate(savedTemplate);
+        }
         
         if (response.data.data.jobDescription !== undefined) {
           setJdText(response.data.data.jobDescription || '');
@@ -262,11 +266,14 @@ export const ResumeProvider = ({ children }) => {
     try {
       const response = await apiClient.get(`${RESUME_API}/single`, { params: { id } });
       if (response.data?.success) {
-        const { resumeData: loadedResume, resumeId: loadedId } = mapResumeFromBackend(
+        const { resumeData: loadedResume, resumeId: loadedId, template: loadedTemplate } = mapResumeFromBackend(
           response.data.data
         );
         setResumeData(loadedResume);
         setResumeId(loadedId);
+        if (loadedTemplate) {
+          setTemplate(loadedTemplate);
+        }
         
         if (response.data.data.jobDescription !== undefined) {
           setJdText(response.data.data.jobDescription || '');

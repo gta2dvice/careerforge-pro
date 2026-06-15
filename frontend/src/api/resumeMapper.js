@@ -8,7 +8,7 @@ const splitFullName = (fullName = '') => {
   };
 };
 
-export const mapResumeToBackend = (resumeData, resumeId = null, jdText = '', atsScore = 0) => {
+export const mapResumeToBackend = (resumeData, resumeId = null, jdText = '', atsScore = 0, template = 'modern') => {
   const { personalInfo, education, experience, projects, skills } = resumeData;
   const { firstName, lastName } = splitFullName(personalInfo?.fullName || '');
 
@@ -16,7 +16,7 @@ export const mapResumeToBackend = (resumeData, resumeId = null, jdText = '', ats
     ...(resumeId ? {} : {}),
     title: personalInfo?.title || personalInfo?.fullName || 'My Resume',
     themeColor: '#9333ea',
-    templateName: 'ModernTemplate',
+    templateName: template === 'classic' ? 'ClassicTemplate' : template === 'minimal' ? 'MinimalTemplate' : 'ModernTemplate',
     firstName,
     lastName,
     jobTitle: personalInfo?.title || '',
@@ -61,6 +61,7 @@ export const mapResumeFromBackend = (doc) => {
   if (!doc) return { resumeData: null, resumeId: null };
 
   const fullName = [doc.firstName, doc.lastName].filter(Boolean).join(' ').trim();
+  const template = doc.templateName === 'ClassicTemplate' ? 'classic' : doc.templateName === 'MinimalTemplate' ? 'minimal' : 'modern';
 
   const resumeData = {
     personalInfo: {
@@ -104,5 +105,5 @@ export const mapResumeFromBackend = (doc) => {
     ),
   };
 
-  return { resumeData, resumeId: doc._id };
+  return { resumeData, resumeId: doc._id, template };
 };
