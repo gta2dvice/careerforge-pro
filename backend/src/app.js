@@ -7,7 +7,8 @@ import dotenv from "dotenv";
 import userRouter from "./routes/userRoutes.js";
 import resumeRouter from "./routes/resumeRoutes.js";
 import aiRouter from "./routes/aiRoutes.js";
-import paymentRouter from "./routes/paymentRoutes.js"
+import paymentRouter from "./routes/paymentRoutes.js";
+import pdfRouter from "./routes/pdfRoutes.js";
 import { handleStripeWebhook } from "./controller/stripe.controller.js";    
 
 // 2. Import Global Error Middleware
@@ -44,6 +45,7 @@ app.use("/api/users", userRouter);
 app.use("/api/resumes", resumeRouter);
 app.use("/api/ai", aiRouter); 
 app.use("/api/payments", paymentRouter);
+app.use("/api/pdf", pdfRouter);
 
 // --- 5. ERROR HANDLING ---
 

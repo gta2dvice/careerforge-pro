@@ -4,6 +4,7 @@ import path from "path";
 import os from "os";
 import { ApiError } from "../utils/ApiError.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
+import { wrapInTemplate } from "../utils/pdfTemplate.js";
 
 /**
  * @desc    Detect Chrome/Edge executable path on Windows
@@ -140,6 +141,94 @@ return res.end(pdfBuffer, 'binary');
             error.statusCode || 500, 
             error.message || "PDF generation engine failure", 
             [], 
+            error.stack
+        );
+    }
+});
+
+/**
+ * @desc    Generate PDF from pre-rendered HTML content
+ * @route   POST /api/pdf/generate
+ */
+export const generatePdfFromHtml = asyncHandler(async (req, res) => {
+    const { html, title } = req.body;
+
+    if (!html) {
+        throw new ApiError(400, "HTML content is required to generate a PDF.");
+    }
+
+    let browser = null;
+
+    try {
+        console.log(`[PDF Generator] Initializing Engine...`);
+
+        browser = await puppeteer.launch({
+            headless: "new",
+            executablePath: getExecutablePath() || undefined,
+            args: [
+                "--no-sandbox",
+                "--disable-setuid-sandbox",
+                "--disable-dev-shm-usage",
+                "--disable-gpu",
+                "--font-render-hinting=none",
+                "--force-color-profile=srgb",
+                "--allow-pre-configured-graphics-settings",
+            ],
+        });
+
+        const page = await browser.newPage();
+
+        // Wrap the HTML content with our CSS and template helper
+        const fullHtml = wrapInTemplate(html);
+
+        // Set viewport to standard A4 size
+        await page.setViewport({
+            width: 794,
+            height: 1123,
+            deviceScaleFactor: 1
+        });
+
+        // Set the page content
+        await page.setContent(fullHtml, {
+            waitUntil: "networkidle0",
+            timeout: 30000
+        });
+
+        // Generate PDF
+        const pdfBuffer = await page.pdf({
+            format: "A4",
+            printBackground: true,
+            margin: {
+                top: "0px",
+                right: "0px",
+                bottom: "0px",
+                left: "0px"
+            },
+            displayHeaderFooter: false,
+            preferCSSPageSize: true
+        });
+
+        await browser.close();
+        browser = null;
+
+        const filename = title ? `${title.replace(/[^a-zA-Z0-9]/g, "_")}.pdf` : "resume.pdf";
+
+        res.set({
+            "Content-Type": "application/pdf",
+            "Content-Disposition": `attachment; filename="${filename}"`,
+            "Content-Length": pdfBuffer.length,
+            "Cache-Control": "no-store, no-cache, must-revalidate",
+        });
+
+        console.log(`[PDF Generator] Dispatching Binary: ${pdfBuffer.length} bytes.`);
+        return res.end(pdfBuffer, 'binary');
+
+    } catch (error) {
+        if (browser) await browser.close();
+        throw new ApiError(
+            error.statusCode || 500,
+            error.message || "Puppeteer PDF generation failed",
+            [],
             error.stack
         );
     }
