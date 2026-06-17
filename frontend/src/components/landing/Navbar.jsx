@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Menu, X } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import Logo from './ui/Logo';
 import Button from './ui/Button';
 import { navLinks } from '../../data/landingContent';
@@ -14,13 +15,23 @@ export default function Navbar() {
 
         <nav className="hidden md:flex items-center gap-8" aria-label="Main">
           {navLinks.map((link) => (
-            <a
-              key={link.href}
-              href={link.href}
-              className="text-sm text-neutral-600 hover:text-neutral-900 transition-colors"
-            >
-              {link.label}
-            </a>
+            link.to ? (
+              <Link
+                key={link.href}
+                to={link.to}
+                className="text-sm text-neutral-600 hover:text-neutral-900 transition-colors"
+              >
+                {link.label}
+              </Link>
+            ) : (
+              <a
+                key={link.href}
+                href={link.href}
+                className="text-sm text-neutral-600 hover:text-neutral-900 transition-colors"
+              >
+                {link.label}
+              </a>
+            )
           ))}
         </nav>
 
@@ -48,14 +59,25 @@ export default function Navbar() {
         <div className="md:hidden border-t border-neutral-200 bg-white px-6 py-4">
           <nav className="flex flex-col gap-3">
             {navLinks.map((link) => (
-              <a
-                key={link.href}
-                href={link.href}
-                className="text-sm text-neutral-700 py-1"
-                onClick={() => setOpen(false)}
-              >
-                {link.label}
-              </a>
+              link.to ? (
+                <Link
+                  key={link.href}
+                  to={link.to}
+                  className="text-sm text-neutral-700 py-1"
+                  onClick={() => setOpen(false)}
+                >
+                  {link.label}
+                </Link>
+              ) : (
+                <a
+                  key={link.href}
+                  href={link.href}
+                  className="text-sm text-neutral-700 py-1"
+                  onClick={() => setOpen(false)}
+                >
+                  {link.label}
+                </a>
+              )
             ))}
             <div className="flex flex-col gap-2 pt-4 border-t border-neutral-100">
               <Button variant="ghost" size="md" to="/app" className="w-full justify-center">

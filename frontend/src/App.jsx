@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { ResumeProvider } from './context/ResumeContext';
 import LandingPage from './pages/LandingPage';
 import ResumeBuilder from './pages/ResumeBuilder';
+import PricingPage from './pages/PricingPage';
 import PrintableResume from './components/PrintableResume';
 
 const AnimatedRoutes = () => {
@@ -37,6 +38,19 @@ const AnimatedRoutes = () => {
                 <ResumeBuilder />
               </motion.div>
             </ResumeProvider>
+          }
+        />
+        <Route
+          path="/pricing"
+          element={
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.22, ease: 'easeInOut' }}
+            >
+              <PricingPage />
+            </motion.div>
           }
         />
         <Route

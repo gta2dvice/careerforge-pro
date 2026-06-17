@@ -4,8 +4,12 @@ import {
   loginUser,
   logoutUser,
   registerUser,
-} from "../controller/userController.js"; // Standardized to match screenshot
-import { isUserAvailable } from "../middleware/authMiddleware.js"; // Standardized to match screenshot
+  getPlanInfo,
+  getPlans,
+  updatePlan,
+  getUsageStats
+} from "../controller/userController.js";
+import { isUserAvailable } from "../middleware/authMiddleware.js";
 
 const router = Router();
 
@@ -36,5 +40,33 @@ router.post("/login", loginUser);
  * @access  Private
  */
 router.get("/logout", isUserAvailable, logoutUser);
+
+/**
+ * @route   GET /api/users/plan
+ * @desc    Get user's subscription plan information
+ * @access  Private
+ */
+router.get("/plan", isUserAvailable, getPlanInfo);
+
+/**
+ * @route   GET /api/users/plans
+ * @desc    Get available subscription plans
+ * @access  Public
+ */
+router.get("/plans", getPlans);
+
+/**
+ * @route   PATCH /api/users/plan
+ * @desc    Update user's subscription plan
+ * @access  Private
+ */
+router.patch("/plan", isUserAvailable, updatePlan);
+
+/**
+ * @route   GET /api/users/usage
+ * @desc    Get user's usage statistics
+ * @access  Private
+ */
+router.get("/usage", isUserAvailable, getUsageStats);
 
 export default router;

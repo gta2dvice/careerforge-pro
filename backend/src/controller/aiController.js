@@ -42,6 +42,12 @@ export const analyzeJobDescription = asyncHandler(async (req, res) => {
 
   try {
     const data = await aiOptimizationService.analyzeJobDescription(resumeData, jd);
+    
+    // Decrement AI credits after successful request
+    if (req.decrementCredits) {
+      await req.decrementCredits();
+    }
+    
     return res.status(200).json(new ApiResponse(200, data, "Job description analyzed"));
   } catch (error) {
     logAiError("analyze-jd-route", error);
@@ -67,6 +73,12 @@ export const getResumeSuggestions = asyncHandler(async (req, res) => {
       jd,
       priorAnalysis
     );
+    
+    // Decrement AI credits after successful request
+    if (req.decrementCredits) {
+      await req.decrementCredits();
+    }
+    
     return res.status(200).json(new ApiResponse(200, data, "Optimization suggestions ready"));
   } catch (error) {
     logAiError("suggestions-route", error);
@@ -93,6 +105,12 @@ export const rewriteResumeBullet = asyncHandler(async (req, res) => {
       jobDescription: jd,
       jdAnalysis,
     });
+    
+    // Decrement AI credits after successful request
+    if (req.decrementCredits) {
+      await req.decrementCredits();
+    }
+    
     return res.status(200).json(new ApiResponse(200, data, "Bullet rewritten successfully"));
   } catch (error) {
     logAiError("rewrite-route", error);
@@ -113,6 +131,12 @@ export const generateAIContent = asyncHandler(async (req, res) => {
 
   try {
     const data = await rewriteResumeContent(promptType, context);
+    
+    // Decrement AI credits after successful request
+    if (req.decrementCredits) {
+      await req.decrementCredits();
+    }
+    
     return res.status(200).json(new ApiResponse(200, data, "Content generated successfully"));
   } catch (error) {
     logAiError("generate-content-route", error, { promptType });
@@ -335,6 +359,11 @@ Return JSON: { "skills": ["skill1", "skill2"] }`,
 
     const parsed = parseJsonFromResponse(content);
     const suggestions = Array.isArray(parsed) ? parsed : parsed.skills || [];
+
+    // Decrement AI credits after successful request
+    if (req.decrementCredits) {
+      await req.decrementCredits();
+    }
 
     return res.status(200).json({ success: true, data: suggestions });
   } catch (error) {

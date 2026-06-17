@@ -2,7 +2,8 @@ import User from "../models/user.model.js";
 import generateToken from "../utils/generateToken.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { ApiError } from "../utils/ApiError.js";
-import { asyncHandler } from "../utils/asyncHandler.js"; // Standard for production
+import { asyncHandler } from "../utils/asyncHandler.js";
+import { formatPlanInfo, getPlanComparison } from "../utils/planValidation.js";
 
 /**
  * @desc    Verify current session
@@ -121,4 +122,118 @@ const logoutUser = asyncHandler(async (req, res) => {
         .json(new ApiResponse(200, {}, "User logged out successfully"));
 });
 
-export { start, loginUser, logoutUser, registerUser };
+/**
+ * @desc    Get user's subscription plan info
+ * @route   GET /api/users/plan
+ * @access  Private
+ */
+const getPlanInfo = asyncHandler(async (req, res) => {
+    if (!req.user) {
+        throw new ApiError(401, "Authentication required");
+    }
+
+    const planInfo = formatPlanInfo(req.user);
+
+    return res
+        .status(200)
+        .json(new ApiResponse(200, planInfo, "Plan information retrieved successfully"));
+});
+
+/**
+ * @desc    Get plan comparison for upgrade
+ * @route   GET /api/users/plans
+ * @access  Public
+ */
+const getPlans = asyncHandler(async (req, res) => {
+    const plans = getPlanComparison();
+
+    return res
+        .status(200)
+        .json(new ApiResponse(200, plans, "Available plans retrieved successfully"));
+});
+
+/**
+ * @desc    Update user's subscription plan (for testing/admin)
+ * @route   PATCH /api/users/plan
+ * @access  Private
+ */
+const updatePlan = asyncHandler(async (req, res) => {
+    if (!req.user) {
+        throw new ApiError(401, "Authentication required");
+    }
+
+    const { plan } = req.body;
+
+    if (!plan || !["free", "pro"].includes(plan)) {
+        throw new ApiError(400, "Invalid plan. Must be 'free' or 'pro'");
+    }
+
+    const user = await User.findById(req.user._id);
+
+    if (!user) {
+        throw new ApiError(404, "User not found");
+    }
+
+    // Update plan
+    user.plan = plan;
+    
+    // If upgrading to pro, set subscription as active
+    if (plan === "pro") {
+        user.subscriptionStatus = "active";
+        user.subscriptionStartDate = new Date();
+    }
+
+    await user.save();
+
+    const updatedUser = await User.findById(user._id).select("-password");
+    const planInfo = formatPlanInfo(updatedUser);
+
+    return res
+        .status(200)
+        .json(new ApiResponse(200, { user: updatedUser, planInfo }, "Plan updated successfully"));
+});
+
+/**
+ * @desc    Get user's usage statistics
+ * @route   GET /api/users/usage
+ * @access  Private
+ */
+const getUsageStats = asyncHandler(async (req, res) => {
+    if (!req.user) {
+        throw new ApiError(401, "Authentication required");
+    }
+
+    const user = await User.findById(req.user._id).select("-password");
+
+    if (!user) {
+        throw new ApiError(404, "User not found");
+    }
+
+    // Reset monthly usage if needed
+    await user.resetMonthlyUsage();
+
+    const stats = {
+        plan: user.plan,
+        aiCredits: user.aiCredits,
+        monthlyAiRequests: user.monthlyAiRequests,
+        subscriptionStatus: user.subscriptionStatus,
+        lastResetDate: user.lastResetDate,
+        isPro: user.isPro(),
+        canMakeAiRequest: user.canMakeAiRequest()
+    };
+
+    return res
+        .status(200)
+        .json(new ApiResponse(200, stats, "Usage statistics retrieved successfully"));
+});
+
+export { 
+    start, 
+    loginUser, 
+    logoutUser, 
+    registerUser,
+    getPlanInfo,
+    getPlans,
+    updatePlan,
+    getUsageStats
+};
