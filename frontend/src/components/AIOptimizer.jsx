@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useResume } from '../context/ResumeContext';
-import { Sparkles, RefreshCw } from 'lucide-react';
+import { useSubscription } from '../context/SubscriptionContext';
+import { Sparkles, RefreshCw, Zap, Crown } from 'lucide-react';
 import JDAnalysisPanel from './ai/JDAnalysisPanel';
 import ATSScoreCard from './ai/ATSScoreCard';
 import MissingKeywordsPanel from './ai/MissingKeywordsPanel';
@@ -25,6 +26,15 @@ const AIOptimizer = () => {
     applyRewrittenBullet,
   } = useResume();
 
+  const {
+    isPro,
+    aiCredits,
+    canMakeAiRequest,
+    handleSubscriptionError,
+    refreshSubscription,
+    promptUpgrade,
+  } = useSubscription();
+
   const [selectedExpIdx, setSelectedExpIdx] = useState(0);
   const [selectedBulletIdx, setSelectedBulletIdx] = useState(0);
   const [targetKeyword, setTargetKeyword] = useState('');
@@ -44,6 +54,15 @@ const AIOptimizer = () => {
     setRewriteError(null);
     setApplySuccess(false);
 
+    // Check credits before making the AI call
+    if (!isPro && aiCredits !== null && aiCredits <= 0) {
+      promptUpgrade(
+        'You have exhausted your AI credits. Upgrade to Pro for unlimited access.',
+        'ai_credits'
+      );
+      return;
+    }
+
     const bullets = getBulletsForExp(selectedExpIdx);
     const bulletToRewrite = bullets[selectedBulletIdx];
     const keywordToUse = targetKeyword === 'custom' ? customKeyword : targetKeyword;
@@ -61,8 +80,14 @@ const AIOptimizer = () => {
     try {
       const result = await rewriteBulletPoint(bulletToRewrite, keywordToUse);
       setRewrittenOutput(result);
+      // Refresh subscription to update credit count
+      refreshSubscription();
     } catch (err) {
-      setRewriteError(err.message || 'Error occurred while rewriting bullet.');
+      // Check if this is a subscription error (403 upgrade required)
+      const wasSubscriptionError = handleSubscriptionError(err);
+      if (!wasSubscriptionError) {
+        setRewriteError(err.message || 'Error occurred while rewriting bullet.');
+      }
     } finally {
       setIsRewriting(false);
     }
@@ -82,15 +107,44 @@ const AIOptimizer = () => {
     <div className="flex flex-col gap-6">
       {/* Job Description Input */}
       <div className="glass-panel rounded-2xl p-6 shadow-xl border border-slate-800">
-        <div className="flex items-center gap-3 border-b border-slate-700/50 pb-4 mb-4">
-          <div className="p-2 bg-indigo-500/10 rounded-lg text-indigo-400">
-            <Sparkles className="w-5 h-5 animate-pulse" />
+        <div className="flex items-center justify-between border-b border-slate-700/50 pb-4 mb-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-indigo-500/10 rounded-lg text-indigo-400">
+              <Sparkles className="w-5 h-5 animate-pulse" />
+            </div>
+            <div>
+              <h3 className="font-bold text-lg text-slate-100">AI Resume Optimizer</h3>
+              <p className="text-xs text-slate-400">
+                JD Analysis Agent · ATS Scoring · Keyword Rewrite · Groq AI
+              </p>
+            </div>
           </div>
-          <div>
-            <h3 className="font-bold text-lg text-slate-100">Week 2 — AI Resume Optimizer</h3>
-            <p className="text-xs text-slate-400">
-              JD Analysis Agent · ATS Scoring · Keyword Rewrite · Groq AI
-            </p>
+          {/* Credits indicator */}
+          <div className="flex items-center gap-1.5">
+            {isPro ? (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-500/10 border border-amber-500/20 rounded-lg text-xs font-bold text-amber-400">
+                <Crown className="w-3.5 h-3.5" />
+                Unlimited
+              </span>
+            ) : (
+              <button
+                type="button"
+                onClick={() => promptUpgrade(
+                  'Upgrade to Pro for unlimited AI credits and premium features.',
+                  'ai_credits'
+                )}
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 border rounded-lg text-xs font-bold transition-colors cursor-pointer ${
+                  aiCredits > 2
+                    ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20'
+                    : aiCredits > 0
+                    ? 'bg-amber-500/10 border-amber-500/20 text-amber-400 hover:bg-amber-500/20'
+                    : 'bg-rose-500/10 border-rose-500/20 text-rose-400 hover:bg-rose-500/20'
+                }`}
+              >
+                <Zap className="w-3.5 h-3.5" />
+                {aiCredits ?? '—'} credit{aiCredits !== 1 ? 's' : ''} left
+              </button>
+            )}
           </div>
         </div>
 
@@ -120,7 +174,19 @@ const AIOptimizer = () => {
 
           <button
             type="button"
-            onClick={() => analyzeAndOptimizeResume()}
+            onClick={async () => {
+              // Check credits before making the AI call
+              if (!isPro && aiCredits !== null && aiCredits <= 0) {
+                promptUpgrade(
+                  'You have exhausted your AI credits. Upgrade to Pro for unlimited access.',
+                  'ai_credits'
+                );
+                return;
+              }
+              await analyzeAndOptimizeResume();
+              // Refresh subscription to update credit count
+              refreshSubscription();
+            }}
             disabled={isOptimizing || !jdText.trim()}
             className={`flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-xs font-bold transition-all ${
               isOptimizing || !jdText.trim()

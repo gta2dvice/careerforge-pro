@@ -1,10 +1,14 @@
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ResumeProvider } from './context/ResumeContext';
+import { SubscriptionProvider } from './context/SubscriptionContext';
 import LandingPage from './pages/LandingPage';
 import ResumeBuilder from './pages/ResumeBuilder';
 import PricingPage from './pages/PricingPage';
 import PrintableResume from './components/PrintableResume';
+import UpgradeModal from './components/ui/UpgradeModal';
+import PaymentSuccessPage from './pages/PaymentSuccessPage';
+import PaymentCancelPage from './pages/PaymentCancelPage';
 
 const AnimatedRoutes = () => {
   const location = useLocation();
@@ -61,6 +65,32 @@ const AnimatedRoutes = () => {
             </ResumeProvider>
           }
         />
+        <Route
+          path="/payment-success"
+          element={
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.22, ease: 'easeInOut' }}
+            >
+              <PaymentSuccessPage />
+            </motion.div>
+          }
+        />
+        <Route
+          path="/payment-cancel"
+          element={
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.22, ease: 'easeInOut' }}
+            >
+              <PaymentCancelPage />
+            </motion.div>
+          }
+        />
       </Routes>
     </AnimatePresence>
   );
@@ -69,7 +99,10 @@ const AnimatedRoutes = () => {
 function App() {
   return (
     <BrowserRouter>
-      <AnimatedRoutes />
+      <SubscriptionProvider>
+        <AnimatedRoutes />
+        <UpgradeModal />
+      </SubscriptionProvider>
     </BrowserRouter>
   );
 }

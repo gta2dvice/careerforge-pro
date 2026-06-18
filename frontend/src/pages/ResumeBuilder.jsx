@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useResume } from '../context/ResumeContext';
+import { useSubscription } from '../context/SubscriptionContext';
 import PersonalInfoForm from '../components/PersonalInfoForm';
 import EducationForm from '../components/EducationForm';
 import ExperienceForm from '../components/ExperienceForm';
@@ -8,6 +9,7 @@ import ProjectsForm from '../components/ProjectsForm';
 import SkillsForm from '../components/SkillsForm';
 import ResumePreview from '../components/ResumePreview';
 import AIOptimizer from '../components/AIOptimizer';
+import PlanBadge from '../components/ui/PlanBadge';
 
 // Beautiful Lucide Icons for dashboard actions
 import { 
@@ -27,6 +29,13 @@ const ResumeBuilder = () => {
     resetResume,
     loadSampleData
   } = useResume();
+
+  const { refreshSubscription, isPro, aiCredits } = useSubscription();
+
+  // Load subscription data when the builder mounts
+  useEffect(() => {
+    refreshSubscription();
+  }, [refreshSubscription]);
 
   const [activeTab, setActiveTab] = useState('personal'); // 'personal', 'work', 'education', 'projects', 'skills'
 
@@ -60,22 +69,25 @@ const ResumeBuilder = () => {
       {/* Premium Dashboard Header */}
       <header className="sticky top-0 z-50 bg-white border-b border-neutral-200/80 px-6 py-4 flex items-center justify-between flex-wrap gap-4 print:hidden shadow-sm">
         {/* Logo and branding */}
-        <Link to="/" className="flex items-center gap-2.5 hover:opacity-90 transition-opacity">
-          <span
-            className="flex h-9 w-9 items-center justify-center rounded-md bg-neutral-900 text-white text-xs font-semibold tracking-tight"
-            aria-hidden
-          >
-            CF
-          </span>
-          <div>
-            <h1 className="text-sm font-semibold text-neutral-900 tracking-tight leading-none font-bold">
-              CareerForge Pro
-            </h1>
-            <p className="text-[9px] text-neutral-500 uppercase tracking-wider font-semibold mt-1 leading-none">
-              ATS Resume Generator SaaS
-            </p>
-          </div>
-        </Link>
+        <div className="flex items-center gap-4">
+          <Link to="/" className="flex items-center gap-2.5 hover:opacity-90 transition-opacity">
+            <span
+              className="flex h-9 w-9 items-center justify-center rounded-md bg-neutral-900 text-white text-xs font-semibold tracking-tight"
+              aria-hidden
+            >
+              CF
+            </span>
+            <div>
+              <h1 className="text-sm font-semibold text-neutral-900 tracking-tight leading-none font-bold">
+                CareerForge Pro
+              </h1>
+              <p className="text-[9px] text-neutral-500 uppercase tracking-wider font-semibold mt-1 leading-none">
+                ATS Resume Generator SaaS
+              </p>
+            </div>
+          </Link>
+          <PlanBadge />
+        </div>
 
         {/* Action Controls */}
         <div className="flex items-center gap-3 flex-wrap">

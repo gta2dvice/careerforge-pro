@@ -12,3 +12,6 @@ export const apiClient = axios.create({
 
 export const RESUME_API = '/api/resumes';
 export const AI_API = '/api/ai';
+export const USER_API = '/api/users';
+export const PAYMENT_API = '/api/payments';
+

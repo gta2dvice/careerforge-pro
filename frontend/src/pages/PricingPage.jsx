@@ -1,11 +1,87 @@
-import { Check, ArrowLeft, Sparkles } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { useState } from 'react';
+import { Check, ArrowLeft, Sparkles, Loader2, Crown, X } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { pricingPlans } from '../data/landingContent';
+import { apiClient } from '../api/client';
 
 export default function PricingPage() {
+  const [isLoading, setIsLoading] = useState(false);
+  const [loadingPlan, setLoadingPlan] = useState(null);
+  const [toast, setToast] = useState(null);
+
+  const showToast = (message, type = 'error') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 5000);
+  };
+
+  const handleUpgrade = async (planName) => {
+    if (planName === 'Free') {
+      // Free plan — just go to the app
+      window.location.href = '/app';
+      return;
+    }
+
+    setIsLoading(true);
+    setLoadingPlan(planName);
+
+    try {
+      const response = await apiClient.post('/api/payments/create-checkout-session');
+
+      if (response.data?.success && response.data.data?.url) {
+        // Redirect to Stripe Checkout
+        window.location.href = response.data.data.url;
+      } else {
+        showToast(response.data?.message || 'Failed to create checkout session');
+      }
+    } catch (err) {
+      const message = err.response?.data?.message || err.message || 'Something went wrong';
+
+      if (err.response?.status === 401) {
+        showToast('Please log in first to upgrade your plan');
+      } else if (err.response?.status === 400) {
+        showToast(message); // e.g. "You already have an active Pro subscription"
+      } else if (err.response?.status === 503) {
+        showToast('Payment system is not configured yet. Please try again later.');
+      } else {
+        showToast(message);
+      }
+    } finally {
+      setIsLoading(false);
+      setLoadingPlan(null);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-neutral-50">
+      {/* Toast notification */}
+      <AnimatePresence>
+        {toast && (
+          <motion.div
+            initial={{ opacity: 0, y: -20, x: '-50%' }}
+            animate={{ opacity: 1, y: 0, x: '-50%' }}
+            exit={{ opacity: 0, y: -20, x: '-50%' }}
+            className="fixed top-6 left-1/2 z-[9999] max-w-md w-full px-4"
+          >
+            <div className={`flex items-center gap-3 px-5 py-3.5 rounded-xl shadow-xl border ${
+              toast.type === 'error'
+                ? 'bg-rose-50 border-rose-200 text-rose-800'
+                : toast.type === 'success'
+                ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
+                : 'bg-amber-50 border-amber-200 text-amber-800'
+            }`}>
+              <span className="text-sm font-medium flex-1">{toast.message}</span>
+              <button
+                onClick={() => setToast(null)}
+                className="p-1 rounded-lg hover:bg-black/5 transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Header */}
       <header className="border-b border-neutral-200 bg-white/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -68,7 +144,7 @@ export default function PricingPage() {
                 {plan.highlighted && (
                   <div className="absolute -top-4 left-1/2 -translate-x-1/2">
                     <span className="inline-flex items-center gap-1 px-4 py-1.5 rounded-full bg-neutral-900 text-white text-sm font-semibold">
-                      <Sparkles className="h-3.5 w-3.5" />
+                      <Crown className="h-3.5 w-3.5" />
                       Most Popular
                     </span>
                   </div>
@@ -89,16 +165,25 @@ export default function PricingPage() {
                   </p>
                 </div>
 
-                <Link
-                  to="/app"
+                <button
+                  type="button"
+                  onClick={() => handleUpgrade(plan.name)}
+                  disabled={isLoading}
                   className={`block w-full py-3.5 px-6 rounded-lg font-semibold text-center transition-all mb-8 ${
                     plan.highlighted
-                      ? 'bg-neutral-900 text-white hover:bg-neutral-800 shadow-md hover:shadow-lg'
-                      : 'bg-neutral-100 text-neutral-900 hover:bg-neutral-200'
+                      ? 'bg-neutral-900 text-white hover:bg-neutral-800 shadow-md hover:shadow-lg disabled:bg-neutral-400'
+                      : 'bg-neutral-100 text-neutral-900 hover:bg-neutral-200 disabled:bg-neutral-50 disabled:text-neutral-400'
                   }`}
                 >
-                  {plan.cta}
-                </Link>
+                  {isLoading && loadingPlan === plan.name ? (
+                    <span className="inline-flex items-center gap-2">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Redirecting to Stripe...
+                    </span>
+                  ) : (
+                    plan.cta
+                  )}
+                </button>
 
                 <div className="space-y-4">
                   <p className="text-sm font-semibold text-neutral-900 uppercase tracking-wide">
@@ -157,6 +242,10 @@ export default function PricingPage() {
               {
                 q: 'What happens when I run out of credits?',
                 a: 'Free users who run out of credits can either wait for the monthly reset or upgrade to Pro for unlimited access. Your resumes and data are always accessible.',
+              },
+              {
+                q: 'Is my payment secure?',
+                a: 'Absolutely. All payments are processed securely through Stripe, a PCI Level 1 certified payment processor. We never store your card details.',
               },
               {
                 q: 'Is there a refund policy?',
