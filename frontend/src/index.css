@@ -30,7 +30,7 @@
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(99, 102, 241, 0.7);
+  background: rgba(8, 8, 8, 0.7);
 }
 
 /* Base Body settings — dark theme scoped to resume app */
